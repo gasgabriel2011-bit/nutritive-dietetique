@@ -86,20 +86,12 @@ export default function Navbar() {
                 Deconnexion
               </button>
             ) : (
-              <div className="ml-2 flex items-center gap-2">
-                <Link
-                  to="/login"
-                  className="rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-                >
-                  Se connecter
-                </Link>
-                <Link
-                  to="/signup"
-                  className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-                >
-                  S'inscrire
-                </Link>
-              </div>
+              <Link
+                to="/signup"
+                className="ml-2 rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+              >
+                S'inscrire
+              </Link>
             )}
           </div>
 
@@ -171,22 +163,7 @@ export default function Navbar() {
                 >
                   Deconnexion
                 </button>
-              ) : (
-                <div className="grid grid-cols-2 gap-3 mt-2">
-                  <Link
-                    to="/login"
-                    className="block px-4 py-3 rounded-2xl border border-slate-300 text-base font-semibold text-center"
-                  >
-                    Connexion
-                  </Link>
-                  <Link
-                    to="/signup"
-                    className="block px-4 py-3 rounded-2xl bg-slate-900 text-base font-semibold text-center text-white"
-                  >
-                    Inscription
-                  </Link>
-                </div>
-              )}
+              ) : null}
               {isAuthenticated && user?.email ? (
                 <p className="px-4 pt-2 text-sm text-foreground/60">
                   {user.email}

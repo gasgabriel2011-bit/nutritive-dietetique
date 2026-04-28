@@ -3,6 +3,7 @@ import { getTodayEntry, saveTodayEntry } from '../../lib/trackingStorage';
 import { Droplets, Zap, Smile, Scale, UtensilsCrossed, Save, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import SleepTracker from './SleepTracker';
+import { useAuth } from '@/lib/AuthContext';
 
 const MOODS = ['😔', '😐', '🙂', '😊', '🤩'];
 const ENERGY_LEVELS = ['Épuisé', 'Fatigué', 'Normal', 'Bien', 'Plein d\'énergie'];
@@ -21,14 +22,38 @@ export default function DailyTracker({ onUpdate }) {
   const [entry, setEntry] = useState(DEFAULT_ENTRY);
   const [locked, setLocked] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    const today = getTodayEntry();
-    if (today) {
-      setEntry({ ...DEFAULT_ENTRY, ...today, sleep: today.sleep || DEFAULT_ENTRY.sleep });
-      if (today.saved) setLocked(true);
-    }
-  }, []);
+    let isMounted = true;
+
+    const loadToday = async () => {
+      setIsLoading(true);
+
+      const today = await getTodayEntry(user);
+      if (!isMounted) {
+        return;
+      }
+
+      if (today) {
+        setEntry({ ...DEFAULT_ENTRY, ...today, sleep: today.sleep || DEFAULT_ENTRY.sleep });
+        setLocked(!!today.saved);
+      } else {
+        setEntry(DEFAULT_ENTRY);
+        setLocked(false);
+      }
+
+      setIsLoading(false);
+    };
+
+    loadToday();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
 
   const update = (field, value) => {
     setEntry(prev => ({ ...prev, [field]: value }));
@@ -39,13 +64,22 @@ export default function DailyTracker({ onUpdate }) {
     update('water', newVal);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const saved = { ...entry, saved: true };
-    setEntry(saved);
-    saveTodayEntry(saved);
-    setLocked(true);
-    onUpdate?.();
-    toast.success('Données enregistrées ! ✅');
+
+    setIsSaving(true);
+
+    try {
+      await saveTodayEntry(saved, user);
+      setEntry(saved);
+      setLocked(true);
+      onUpdate?.();
+      toast.success(isAuthenticated ? 'Données synchronisées ! ✅' : 'Données enregistrées sur cet appareil ! ✅');
+    } catch (error) {
+      toast.error(error.message || "Impossible d'enregistrer vos données pour le moment.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleFieldClick = () => {
@@ -57,6 +91,14 @@ export default function DailyTracker({ onUpdate }) {
     setShowConfirm(false);
     toast('Modification autorisée. N\'oubliez pas de ré-enregistrer.', { icon: '✏️' });
   };
+
+  if (isLoading) {
+    return (
+      <div className="bg-card rounded-2xl p-5 border border-border/50 text-sm text-muted-foreground">
+        Chargement de votre suivi...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -204,10 +246,11 @@ export default function DailyTracker({ onUpdate }) {
       {!locked ? (
         <button
           onClick={handleSave}
+          disabled={isSaving}
           className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/20"
         >
           <Save className="w-4 h-4" />
-          Enregistrer la journée
+          {isSaving ? "Enregistrement..." : "Enregistrer la journée"}
         </button>
       ) : (
         <button

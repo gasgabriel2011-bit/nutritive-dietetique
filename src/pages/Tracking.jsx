@@ -5,17 +5,38 @@ import ConstancyRing from '../components/tracking/ConstancyRing';
 import DailyTracker from '../components/tracking/DailyTracker';
 import WeekChart from '../components/tracking/WeekChart';
 import { TrendingUp, CalendarDays } from 'lucide-react';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function Tracking() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [score, setScore] = useState(0);
   const [savedDays, setSavedDays] = useState(0);
   const [tab, setTab] = useState('daily');
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    setScore(getConstancyScore());
-    setSavedDays(countSavedDays());
-  }, [refreshKey]);
+    let isMounted = true;
+
+    const loadTrackingStats = async () => {
+      const [nextScore, nextSavedDays] = await Promise.all([
+        getConstancyScore(user),
+        countSavedDays(user),
+      ]);
+
+      if (!isMounted) {
+        return;
+      }
+
+      setScore(nextScore);
+      setSavedDays(nextSavedDays);
+    };
+
+    loadTrackingStats();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [refreshKey, user]);
 
   const handleUpdate = () => {
     setRefreshKey(k => k + 1);
@@ -30,7 +51,7 @@ export default function Tracking() {
             Suivi <span className="italic font-semibold text-primary">nutrition</span>
           </h1>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-            Suivez vos habitudes au quotidien. Vos données restent sur votre appareil, en toute confidentialité.
+            Suivez vos habitudes au quotidien. {isAuthenticated ? "Vos données sont synchronisées avec votre compte." : "Vos données restent sur votre appareil tant que vous n'êtes pas connecté."}
           </p>
         </AnimatedSection>
 

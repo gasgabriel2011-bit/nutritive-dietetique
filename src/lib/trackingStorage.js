@@ -1,88 +1,249 @@
-const STORAGE_KEY = 'nutrivie_tracking';
+import { supabase } from "./supabase"
 
-export function getTrackingData() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return { entries: [] };
-  return JSON.parse(raw);
+const STORAGE_KEY = "nutrivie_tracking"
+const TRACKING_METADATA_KEY = "tracking_entries"
+const MAX_REMOTE_ENTRIES = 120
+
+function getTodayDateString() {
+  return new Date().toISOString().split("T")[0]
 }
 
-export function saveTrackingData(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+function normalizeTrackingData(data) {
+  const entries = Array.isArray(data?.entries)
+    ? data.entries
+        .filter((entry) => entry?.date)
+        .map((entry) => ({ ...entry }))
+        .sort((a, b) => a.date.localeCompare(b.date))
+    : []
+
+  return { entries }
 }
 
-export function getTodayEntry() {
-  const today = new Date().toISOString().split('T')[0];
-  const data = getTrackingData();
-  return data.entries.find(e => e.date === today) || null;
+function getLocalTrackingData() {
+  if (typeof window === "undefined") {
+    return { entries: [] }
+  }
+
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) {
+      return { entries: [] }
+    }
+
+    return normalizeTrackingData(JSON.parse(raw))
+  } catch {
+    return { entries: [] }
+  }
 }
 
-export function saveTodayEntry(entry) {
-  const today = new Date().toISOString().split('T')[0];
-  const data = getTrackingData();
-  const idx = data.entries.findIndex(e => e.date === today);
-  const fullEntry = { ...entry, date: today };
+function saveLocalTrackingData(data) {
+  if (typeof window === "undefined") {
+    return
+  }
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizeTrackingData(data)))
+}
+
+function getRemoteTrackingData(user) {
+  return normalizeTrackingData({
+    entries: user?.user_metadata?.[TRACKING_METADATA_KEY] || [],
+  })
+}
+
+function trimTrackingEntries(entries) {
+  return [...entries].sort((a, b) => a.date.localeCompare(b.date)).slice(-MAX_REMOTE_ENTRIES)
+}
+
+function isEntryNewer(currentEntry, nextEntry) {
+  const currentUpdatedAt = currentEntry?.updatedAt || currentEntry?.date || ""
+  const nextUpdatedAt = nextEntry?.updatedAt || nextEntry?.date || ""
+  return nextUpdatedAt >= currentUpdatedAt
+}
+
+function mergeTrackingData(primaryData, secondaryData) {
+  const entryMap = new Map()
+
+  for (const entry of secondaryData.entries || []) {
+    entryMap.set(entry.date, entry)
+  }
+
+  for (const entry of primaryData.entries || []) {
+    const currentEntry = entryMap.get(entry.date)
+
+    if (!currentEntry || isEntryNewer(currentEntry, entry)) {
+      entryMap.set(entry.date, entry)
+    }
+  }
+
+  return normalizeTrackingData({
+    entries: trimTrackingEntries([...entryMap.values()]),
+  })
+}
+
+function hasSameEntries(firstData, secondData) {
+  return JSON.stringify(normalizeTrackingData(firstData).entries) === JSON.stringify(normalizeTrackingData(secondData).entries)
+}
+
+async function resolveTrackingUser(user) {
+  if (!supabase) {
+    return null
+  }
+
+  if (user?.id) {
+    return user
+  }
+
+  const { data, error } = await supabase.auth.getUser()
+  if (error) {
+    throw error
+  }
+
+  return data.user ?? null
+}
+
+async function persistRemoteTrackingData(data, user) {
+  if (!supabase || !user?.id) {
+    return
+  }
+
+  const metadata = {
+    ...(user.user_metadata || {}),
+    [TRACKING_METADATA_KEY]: trimTrackingEntries(normalizeTrackingData(data).entries),
+  }
+
+  const { error } = await supabase.auth.updateUser({ data: metadata })
+  if (error) {
+    throw error
+  }
+}
+
+export async function getTrackingData(user) {
+  const localData = getLocalTrackingData()
+  const remoteUser = await resolveTrackingUser(user)
+
+  if (!remoteUser) {
+    return localData
+  }
+
+  const remoteData = getRemoteTrackingData(remoteUser)
+  const mergedData = mergeTrackingData(localData, remoteData)
+
+  saveLocalTrackingData(mergedData)
+
+  if (!hasSameEntries(remoteData, mergedData)) {
+    try {
+      await persistRemoteTrackingData(mergedData, remoteUser)
+    } catch (error) {
+      console.warn("Tracking sync failed:", error)
+    }
+  }
+
+  return mergedData
+}
+
+export async function saveTrackingData(data, user) {
+  const normalizedData = normalizeTrackingData(data)
+  saveLocalTrackingData(normalizedData)
+
+  const remoteUser = await resolveTrackingUser(user)
+  if (!remoteUser) {
+    return normalizedData
+  }
+
+  await persistRemoteTrackingData(normalizedData, remoteUser)
+  return normalizedData
+}
+
+export async function getTodayEntry(user) {
+  const today = getTodayDateString()
+  const data = await getTrackingData(user)
+  return data.entries.find((entry) => entry.date === today) || null
+}
+
+export async function saveTodayEntry(entry, user) {
+  const today = getTodayDateString()
+  const data = await getTrackingData(user)
+  const idx = data.entries.findIndex((currentEntry) => currentEntry.date === today)
+  const fullEntry = {
+    ...entry,
+    date: today,
+    updatedAt: new Date().toISOString(),
+  }
+
   if (idx >= 0) {
-    data.entries[idx] = fullEntry;
+    data.entries[idx] = fullEntry
   } else {
-    data.entries.push(fullEntry);
+    data.entries.push(fullEntry)
   }
-  saveTrackingData(data);
-  return fullEntry;
+
+  await saveTrackingData(data, user)
+  return fullEntry
 }
 
-export function getWeekEntries() {
-  const data = getTrackingData();
-  const today = new Date();
-  const week = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    const dateStr = d.toISOString().split('T')[0];
-    const entry = data.entries.find(e => e.date === dateStr);
+export async function getWeekEntries(user) {
+  const data = await getTrackingData(user)
+  const today = new Date()
+  const week = []
+
+  for (let i = 6; i >= 0; i -= 1) {
+    const date = new Date(today)
+    date.setDate(date.getDate() - i)
+    const dateString = date.toISOString().split("T")[0]
+    const entry = data.entries.find((currentEntry) => currentEntry.date === dateString)
+
     week.push({
-      date: dateStr,
-      dayLabel: d.toLocaleDateString('fr-FR', { weekday: 'short' }),
+      date: dateString,
+      dayLabel: date.toLocaleDateString("fr-FR", { weekday: "short" }),
       ...(entry || {}),
-    });
+    })
   }
-  return week;
+
+  return week
 }
 
-// Count days with a saved entry (saved flag = true)
-export function countSavedDays() {
-  const data = getTrackingData();
-  return data.entries.filter(e => e.saved).length;
+export async function countSavedDays(user) {
+  const data = await getTrackingData(user)
+  return data.entries.filter((entry) => entry.saved).length
 }
 
-export function getConstancyScore() {
-  const week = getWeekEntries();
-  let filled = 0;
-  week.forEach(entry => {
-    if (entry.saved) filled++;
-  });
-  return Math.round((filled / 7) * 100);
+export async function getConstancyScore(user) {
+  const week = await getWeekEntries(user)
+  const filledDays = week.filter((entry) => entry.saved).length
+  return Math.round((filledDays / 7) * 100)
 }
 
-// Generate time slots (HH:MM) from startH:startM to endH:endM, step 15 min
 export function generateTimeSlots(startHour, startMin, endHour, endMin) {
-  const slots = [];
-  let h = startHour, m = startMin;
-  while (h < endHour || (h === endHour && m <= endMin)) {
-    slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
-    m += 15;
-    if (m >= 60) { m = 0; h++; }
+  const slots = []
+  let hour = startHour
+  let minute = startMin
+
+  while (hour < endHour || (hour === endHour && minute <= endMin)) {
+    slots.push(`${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`)
+    minute += 15
+
+    if (minute >= 60) {
+      minute = 0
+      hour += 1
+    }
   }
-  return slots;
+
+  return slots
 }
 
-// Calculate sleep duration in hours between bedtime and waketime (handles overnight)
 export function calcSleepDuration(bedtime, waketime) {
-  if (!bedtime || !waketime) return null;
-  const [bh, bm] = bedtime.split(':').map(Number);
-  const [wh, wm] = waketime.split(':').map(Number);
-  let bedMinutes = bh * 60 + bm;
-  let wakeMinutes = wh * 60 + wm;
-  if (wakeMinutes <= bedMinutes) wakeMinutes += 24 * 60; // overnight
-  const diff = wakeMinutes - bedMinutes;
-  return (diff / 60).toFixed(1);
+  if (!bedtime || !waketime) {
+    return null
+  }
+
+  const [bedHour, bedMinute] = bedtime.split(":").map(Number)
+  const [wakeHour, wakeMinute] = waketime.split(":").map(Number)
+
+  let bedTotalMinutes = bedHour * 60 + bedMinute
+  let wakeTotalMinutes = wakeHour * 60 + wakeMinute
+
+  if (wakeTotalMinutes <= bedTotalMinutes) {
+    wakeTotalMinutes += 24 * 60
+  }
+
+  return ((wakeTotalMinutes - bedTotalMinutes) / 60).toFixed(1)
 }

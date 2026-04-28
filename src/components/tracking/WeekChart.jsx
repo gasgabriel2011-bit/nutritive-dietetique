@@ -1,13 +1,31 @@
 import { getWeekEntries } from '../../lib/trackingStorage';
 import { useState, useEffect } from 'react';
 import SleepTimeline from './SleepTimeline';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function WeekChart({ refreshKey }) {
   const [week, setWeek] = useState([]);
+  const { user } = useAuth();
 
   useEffect(() => {
-    setWeek(getWeekEntries());
-  }, [refreshKey]);
+    let isMounted = true;
+
+    const loadWeek = async () => {
+      const nextWeek = await getWeekEntries(user);
+
+      if (!isMounted) {
+        return;
+      }
+
+      setWeek(nextWeek);
+    };
+
+    loadWeek();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [refreshKey, user]);
 
   const maxWeight = Math.max(...week.map(w => parseFloat(w.weight) || 0), 1);
   const maxWater = 2000;
