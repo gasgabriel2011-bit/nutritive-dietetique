@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Leaf } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/lib/AuthContext';
+import { supabase } from '@/lib/supabase';
 
 const navLinks = [
   { label: 'Accueil', path: '/' },
@@ -15,6 +17,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -25,6 +28,14 @@ export default function Navbar() {
   useEffect(() => {
     setIsOpen(false);
   }, [location]);
+
+  const handleLogout = async () => {
+    if (!supabase) {
+      return;
+    }
+
+    await supabase.auth.signOut();
+  };
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
@@ -66,6 +77,21 @@ export default function Navbar() {
             >
               Prendre RDV
             </Link>
+            {isAuthenticated ? (
+              <button
+                onClick={handleLogout}
+                className="ml-2 rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+              >
+                Deconnexion
+              </button>
+            ) : (
+              <Link
+                to="/login"
+                className="ml-2 rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+              >
+                Connexion
+              </Link>
+            )}
           </div>
 
           {/* Mobile toggle */}
@@ -107,6 +133,26 @@ export default function Navbar() {
               >
                 Prendre rendez-vous
               </Link>
+              {isAuthenticated ? (
+                <button
+                  onClick={handleLogout}
+                  className="block w-full px-4 py-3 rounded-2xl border border-slate-300 text-base font-semibold text-center mt-2"
+                >
+                  Deconnexion
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  className="block px-4 py-3 rounded-2xl border border-slate-300 text-base font-semibold text-center mt-2"
+                >
+                  Connexion
+                </Link>
+              )}
+              {isAuthenticated && user?.email ? (
+                <p className="px-4 pt-2 text-sm text-foreground/60">
+                  {user.email}
+                </p>
+              ) : null}
             </div>
           </motion.div>
         )}
