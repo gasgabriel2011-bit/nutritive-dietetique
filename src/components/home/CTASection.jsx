@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import AnimatedSection from '../ui/AnimatedSection';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function CTASection({ lifestyleImage }) {
+  const { isAuthenticated } = useAuth();
+
   return (
     <section className="py-20 lg:py-28">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -24,13 +27,23 @@ export default function CTASection({ lifestyleImage }) {
                   Chaque petit pas compte. Découvrez une approche nutritionnelle 
                   adaptée à votre vie, sans frustration ni privation.
                 </p>
-                <Link
-                  to="/rendez-vous"
-                  className="group inline-flex items-center gap-2 px-8 py-4 rounded-full bg-secondary text-secondary-foreground font-semibold hover:shadow-xl transition-all duration-300 hover:scale-105"
-                >
-                  Prendre rendez-vous
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
+                <div className="flex flex-wrap gap-4">
+                  <Link
+                    to="/rendez-vous"
+                    className="group inline-flex items-center gap-2 px-8 py-4 rounded-full bg-secondary text-secondary-foreground font-semibold hover:shadow-xl transition-all duration-300 hover:scale-105"
+                  >
+                    Prendre rendez-vous
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                  {!isAuthenticated ? (
+                    <Link
+                      to="/login"
+                      className="inline-flex items-center gap-2 rounded-full border border-white/30 px-8 py-4 font-semibold text-white transition hover:bg-white/10"
+                    >
+                      Se connecter
+                    </Link>
+                  ) : null}
+                </div>
               </div>
             </div>
           </div>

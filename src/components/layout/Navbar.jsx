@@ -30,11 +30,12 @@ export default function Navbar() {
   }, [location]);
 
   const handleLogout = async () => {
-    if (!supabase) {
+    const client = supabase;
+    if (!client) {
       return;
     }
 
-    await supabase.auth.signOut();
+    await client.auth.signOut();
   };
 
   return (
@@ -85,12 +86,20 @@ export default function Navbar() {
                 Deconnexion
               </button>
             ) : (
-              <Link
-                to="/login"
-                className="ml-2 rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-              >
-                Connexion
-              </Link>
+              <div className="ml-2 flex items-center gap-2">
+                <Link
+                  to="/login"
+                  className="rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+                >
+                  Se connecter
+                </Link>
+                <Link
+                  to="/signup"
+                  className="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+                >
+                  S'inscrire
+                </Link>
+              </div>
             )}
           </div>
 
@@ -114,6 +123,28 @@ export default function Navbar() {
             className="md:hidden bg-background/95 backdrop-blur-xl border-b border-border overflow-hidden"
           >
             <div className="px-4 py-4 space-y-1">
+              {!isAuthenticated ? (
+                <div className="mb-3 rounded-3xl bg-slate-900 p-5 text-white">
+                  <p className="text-lg font-semibold">Accedez a votre espace</p>
+                  <p className="mt-1 text-sm text-white/75">
+                    Connectez-vous ou creez un compte pour retrouver votre suivi.
+                  </p>
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <Link
+                      to="/login"
+                      className="rounded-2xl bg-white px-4 py-3 text-center text-sm font-semibold text-slate-900"
+                    >
+                      Se connecter
+                    </Link>
+                    <Link
+                      to="/signup"
+                      className="rounded-2xl border border-white/30 px-4 py-3 text-center text-sm font-semibold text-white"
+                    >
+                      S'inscrire
+                    </Link>
+                  </div>
+                </div>
+              ) : null}
               {navLinks.map(link => (
                 <Link
                   key={link.path}
@@ -141,12 +172,20 @@ export default function Navbar() {
                   Deconnexion
                 </button>
               ) : (
-                <Link
-                  to="/login"
-                  className="block px-4 py-3 rounded-2xl border border-slate-300 text-base font-semibold text-center mt-2"
-                >
-                  Connexion
-                </Link>
+                <div className="grid grid-cols-2 gap-3 mt-2">
+                  <Link
+                    to="/login"
+                    className="block px-4 py-3 rounded-2xl border border-slate-300 text-base font-semibold text-center"
+                  >
+                    Connexion
+                  </Link>
+                  <Link
+                    to="/signup"
+                    className="block px-4 py-3 rounded-2xl bg-slate-900 text-base font-semibold text-center text-white"
+                  >
+                    Inscription
+                  </Link>
+                </div>
               )}
               {isAuthenticated && user?.email ? (
                 <p className="px-4 pt-2 text-sm text-foreground/60">

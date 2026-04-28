@@ -1,7 +1,7 @@
 import AnimatedSection from '../ui/AnimatedSection';
 
 const stats = [
-  { number: '500+', label: 'Patients accompagnés', icon: '👥' },
+  { number: '5000+', label: 'Patients accompagnés', icon: '👥' },
   { number: '97%', label: 'Taux de satisfaction', icon: '⭐' },
   { number: '12 ans', label: "D'expérience", icon: '🏆' },
   { number: '-5kg', label: 'Moyenne sur 3 mois', icon: '📉' },

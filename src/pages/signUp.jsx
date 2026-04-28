@@ -15,11 +15,17 @@ export default function SignUp() {
       return
     }
 
+    const client = supabase
+    if (!client) {
+      setErrorMessage("La connexion est indisponible pour le moment.")
+      return
+    }
+
     setIsSubmitting(true)
     setErrorMessage("")
     setMessage("")
 
-    const { error } = await supabase.auth.signUp({ email, password })
+    const { error } = await client.auth.signUp({ email, password })
 
     setIsSubmitting(false)
 
