@@ -9,6 +9,14 @@ export default function SignUp() {
   const [errorMessage, setErrorMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const getRedirectUrl = () => {
+    if (typeof window === "undefined") {
+      return "https://dtitnpbbxyvteotoagoh.supabase.co"
+    }
+
+    return `${window.location.origin}/`
+  }
+
   const handleSignup = async () => {
     if (supabaseConfigError) {
       setErrorMessage(supabaseConfigError)
@@ -25,7 +33,13 @@ export default function SignUp() {
     setErrorMessage("")
     setMessage("")
 
-    const { error } = await client.auth.signUp({ email, password })
+    const { error } = await client.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: getRedirectUrl(),
+      },
+    })
 
     setIsSubmitting(false)
 
@@ -34,7 +48,7 @@ export default function SignUp() {
       return
     }
 
-    setMessage("Compte cree. Verifie ton email pour confirmer l'inscription.")
+    setMessage("Compte cree. Verifie ton email: le lien te ramenera directement sur le site.")
   }
 
   return (
