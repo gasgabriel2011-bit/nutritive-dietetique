@@ -1,7 +1,7 @@
 import { Clock, Flame, Dumbbell } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export default function RecipeCard({ recipe, onClick, image }) {
+export default function RecipeCard({ recipe, onClick, image = null }) {
   return (
     <motion.div
       whileHover={{ y: -4 }}

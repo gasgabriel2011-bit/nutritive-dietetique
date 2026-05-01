@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -19,12 +19,9 @@ import SecheRecipes from './pages/seche/SecheRecipes';
 import SecheShopping from './pages/seche/SecheShopping';
 import SecheSport from './pages/seche/SecheSport';
 import SecheDrinks from './pages/seche/SecheDrinks';
-import ScrollToTop from './components/ScrollToTop';
-import Login from './pages/login';
-import SignUp from './pages/signUp';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -39,25 +36,23 @@ const AuthenticatedApp = () => {
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
+    } else if (authError.type === 'auth_required') {
+      // Redirect to login automatically
+      navigateToLogin();
+      return null;
     }
   }
 
   // Render the main app
   return (
     <Routes>
-      <Route
-        path="/login"
-        element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
-      />
-      <Route
-        path="/signup"
-        element={isAuthenticated ? <Navigate to="/" replace /> : <SignUp />}
-      />
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
         <Route path="/recettes" element={<Recipes />} />
         <Route path="/suivi" element={<Tracking />} />
         <Route path="/plans" element={<MealPlans />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/rendez-vous" element={<Appointment />} />
         <Route path="/plans/seche-progressive" element={<PlanSecheProgressive />} />
         <Route path="/plans/seche-progressive/semaines" element={<SecheWeeks />} />
         <Route path="/plans/seche-progressive/journees" element={<SecheDays />} />
@@ -65,8 +60,6 @@ const AuthenticatedApp = () => {
         <Route path="/plans/seche-progressive/courses" element={<SecheShopping />} />
         <Route path="/plans/seche-progressive/sport" element={<SecheSport />} />
         <Route path="/plans/seche-progressive/boissons" element={<SecheDrinks />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/rendez-vous" element={<Appointment />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
@@ -80,7 +73,6 @@ function App() {
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
-          <ScrollToTop />
           <AuthenticatedApp />
         </Router>
         <Toaster />

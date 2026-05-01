@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Clock, Flame, ChevronRight, Target } from 'lucide-react';
 import { motion } from 'framer-motion';
 import AnimatedSection from '../components/ui/AnimatedSection';
@@ -127,6 +128,15 @@ export default function MealPlans() {
                         <p className="text-xs text-muted-foreground bg-primary/5 rounded-xl p-3">
                           💡 {plan.tips}
                         </p>
+                      )}
+                      {plan.category === 'seche' && (
+                        <Link
+                          to="/plans/seche-progressive"
+                          onClick={(event) => event.stopPropagation()}
+                          className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90"
+                        >
+                          Ouvrir le programme
+                        </Link>
                       )}
                     </motion.div>
                   )}
