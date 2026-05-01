@@ -85,20 +85,11 @@ function hasSameEntries(firstData, secondData) {
 }
 
 async function resolveTrackingUser(user) {
-  if (!supabase) {
+  if (!supabase || !user?.id) {
     return null
   }
 
-  if (user?.id) {
-    return user
-  }
-
-  const { data, error } = await supabase.auth.getUser()
-  if (error) {
-    throw error
-  }
-
-  return data.user ?? null
+  return user
 }
 
 async function persistRemoteTrackingData(data, user) {
@@ -218,7 +209,7 @@ export function generateTimeSlots(startHour, startMin, endHour, endMin) {
   let minute = startMin
 
   while (hour < endHour || (hour === endHour && minute <= endMin)) {
-    slots.push(`${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`)
+    slots.push(`${String(hour % 24).padStart(2, "0")}:${String(minute).padStart(2, "0")}`)
     minute += 15
 
     if (minute >= 60) {
@@ -238,8 +229,8 @@ export function calcSleepDuration(bedtime, waketime) {
   const [bedHour, bedMinute] = bedtime.split(":").map(Number)
   const [wakeHour, wakeMinute] = waketime.split(":").map(Number)
 
-  let bedTotalMinutes = bedHour * 60 + bedMinute
-  let wakeTotalMinutes = wakeHour * 60 + wakeMinute
+  let bedTotalMinutes = (bedHour % 24) * 60 + bedMinute
+  let wakeTotalMinutes = (wakeHour % 24) * 60 + wakeMinute
 
   if (wakeTotalMinutes <= bedTotalMinutes) {
     wakeTotalMinutes += 24 * 60

@@ -32,20 +32,31 @@ export default function DailyTracker({ onUpdate }) {
     const loadToday = async () => {
       setIsLoading(true);
 
-      const today = await getTodayEntry(user);
-      if (!isMounted) {
-        return;
-      }
+      try {
+        const today = await getTodayEntry(user);
+        if (!isMounted) {
+          return;
+        }
 
-      if (today) {
-        setEntry({ ...DEFAULT_ENTRY, ...today, sleep: today.sleep || DEFAULT_ENTRY.sleep });
-        setLocked(!!today.saved);
-      } else {
+        if (today) {
+          setEntry({ ...DEFAULT_ENTRY, ...today, sleep: today.sleep || DEFAULT_ENTRY.sleep });
+          setLocked(!!today.saved);
+        } else {
+          setEntry(DEFAULT_ENTRY);
+          setLocked(false);
+        }
+      } catch {
+        if (!isMounted) {
+          return;
+        }
+
         setEntry(DEFAULT_ENTRY);
         setLocked(false);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
-
-      setIsLoading(false);
     };
 
     loadToday();

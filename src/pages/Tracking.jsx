@@ -18,17 +18,26 @@ export default function Tracking() {
     let isMounted = true;
 
     const loadTrackingStats = async () => {
-      const [nextScore, nextSavedDays] = await Promise.all([
-        getConstancyScore(user),
-        countSavedDays(user),
-      ]);
+      try {
+        const [nextScore, nextSavedDays] = await Promise.all([
+          getConstancyScore(user),
+          countSavedDays(user),
+        ]);
 
-      if (!isMounted) {
-        return;
+        if (!isMounted) {
+          return;
+        }
+
+        setScore(nextScore);
+        setSavedDays(nextSavedDays);
+      } catch {
+        if (!isMounted) {
+          return;
+        }
+
+        setScore(0);
+        setSavedDays(0);
       }
-
-      setScore(nextScore);
-      setSavedDays(nextSavedDays);
     };
 
     loadTrackingStats();

@@ -11,13 +11,19 @@ export default function WeekChart({ refreshKey }) {
     let isMounted = true;
 
     const loadWeek = async () => {
-      const nextWeek = await getWeekEntries(user);
+      try {
+        const nextWeek = await getWeekEntries(user);
 
-      if (!isMounted) {
-        return;
+        if (!isMounted) {
+          return;
+        }
+
+        setWeek(nextWeek);
+      } catch {
+        if (isMounted) {
+          setWeek([]);
+        }
       }
-
-      setWeek(nextWeek);
     };
 
     loadWeek();
