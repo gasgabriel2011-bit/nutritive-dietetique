@@ -22,6 +22,13 @@ import SecheDrinks from './pages/seche/SecheDrinks';
 import ScrollToTop from './components/ScrollToTop';
 import Login from './pages/login';
 import SignUp from './pages/signUp';
+import ReequWeeks from './pages/reequilibrage/ReequWeeks';
+import ReequDays from './pages/reequilibrage/ReequDays';
+import ReequRecipes from './pages/reequilibrage/ReequRecipes';
+import ReequShopping from './pages/reequilibrage/ReequShopping';
+import ReequSuivi from './pages/reequilibrage/ReequSuivi';
+import ReequPratique from './pages/reequilibrage/ReequPratique';
+import PlanReequilibrage from './pages/PlanReequilibrage';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated } = useAuth();
@@ -65,6 +72,13 @@ const AuthenticatedApp = () => {
         <Route path="/plans/seche-progressive/courses" element={<SecheShopping />} />
         <Route path="/plans/seche-progressive/sport" element={<SecheSport />} />
         <Route path="/plans/seche-progressive/boissons" element={<SecheDrinks />} />
+        <Route path="/plans/reequilibrage-alimentaire" element={<PlanReequilibrage />} />
+        <Route path="/plans/reequilibrage-alimentaire/semaines" element={<ReequWeeks />} />
+        <Route path="/plans/reequilibrage-alimentaire/journees" element={<ReequDays />} />
+        <Route path="/plans/reequilibrage-alimentaire/recettes" element={<ReequRecipes />} />
+        <Route path="/plans/reequilibrage-alimentaire/courses" element={<ReequShopping />} />
+        <Route path="/plans/reequilibrage-alimentaire/suivi" element={<ReequSuivi />} />
+        <Route path="/plans/reequilibrage-alimentaire/conseils" element={<ReequPratique />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/rendez-vous" element={<Appointment />} />
         <Route path="*" element={<PageNotFound />} />

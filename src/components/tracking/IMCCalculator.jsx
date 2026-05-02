@@ -1,12 +1,12 @@
 import { useState } from 'react';
 
 const IMC_ZONES = [
-  { label: 'Maigreur sévère', min: 0, max: 16, color: '#93c5fd' },
-  { label: 'Maigreur', min: 16, max: 18.5, color: '#6ee7b7' },
-  { label: 'Poids normal', min: 18.5, max: 25, color: '#86efac' },
-  { label: 'Surpoids', min: 25, max: 30, color: '#fde68a' },
-  { label: 'Obésité modérée', min: 30, max: 35, color: '#fca5a5' },
-  { label: 'Obésité sévère', min: 35, max: 50, color: '#f87171' },
+  { label: 'Maigreur sévère', min: 0, max: 16, color: '#b7cde8' },
+  { label: 'Maigreur', min: 16, max: 18.5, color: '#b8d9c6' },
+  { label: 'Poids normal', min: 18.5, max: 25, color: '#a9d6a8' },
+  { label: 'Surpoids', min: 25, max: 30, color: '#ead79b' },
+  { label: 'Obésité modérée', min: 30, max: 35, color: '#e8b1a8' },
+  { label: 'Obésité sévère', min: 35, max: 50, color: '#d98989' },
 ];
 
 const IMC_MIN = 14;
@@ -18,12 +18,13 @@ function getZone(imc) {
 
 function getBarPosition(imc) {
   const clamped = Math.min(Math.max(imc, IMC_MIN), IMC_MAX);
-  return ((clamped - IMC_MIN) / (IMC_MAX - IMC_MIN)) * 100;
+  const edgePadding = 3;
+  const rawPosition = ((clamped - IMC_MIN) / (IMC_MAX - IMC_MIN)) * 100;
+  return edgePadding + (rawPosition * (100 - edgePadding * 2)) / 100;
 }
 
 function getGradient() {
-  // Smooth gradient from blue → green → yellow → orange → red
-  return 'linear-gradient(to right, #93c5fd 0%, #6ee7b7 18%, #86efac 32%, #86efac 52%, #fde68a 62%, #fca5a5 75%, #f87171 100%)';
+  return 'linear-gradient(to right, #b7cde8 0%, #b8d9c6 18%, #a9d6a8 32%, #a9d6a8 52%, #ead79b 62%, #e8b1a8 75%, #d98989 100%)';
 }
 
 export default function IMCCalculator() {
@@ -128,14 +129,14 @@ export default function IMCCalculator() {
               </div>
 
               {/* Gradient bar */}
-              <div className="relative">
+              <div className="relative px-1.5 pt-2">
                 <div
-                  className="h-4 rounded-full w-full"
+                  className="h-3 rounded-full w-full shadow-inner"
                   style={{ background: getGradient() }}
                 />
                 {/* Marker */}
                 <div
-                  className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-foreground border-2 border-card shadow-lg transition-all duration-500"
+                  className="absolute top-2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-card border-[3px] border-foreground shadow-md transition-all duration-500"
                   style={{ left: `${getBarPosition(imc)}%` }}
                 />
                 {/* Labels */}

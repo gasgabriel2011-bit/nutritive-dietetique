@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { Clock, Flame, ChevronRight, Target } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import AnimatedSection from '../components/ui/AnimatedSection';
 
-const PLAN_ROUTES = { '1': '/plans/seche-progressive' };
+const PLAN_ROUTES = {
+  '1': '/plans/seche-progressive',
+  '2': '/plans/reequilibrage-alimentaire',
+};
 
 const PLAN_CATEGORIES = [
   { value: '', label: 'Tous', icon: '🍽️' },
@@ -34,7 +37,6 @@ const PLANS_DATA = [
 export default function MealPlans() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [expandedPlan, setExpandedPlan] = useState(null);
-  const navigate = useNavigate();
 
   const filtered = PLANS_DATA.filter(p => !selectedCategory || p.category === selectedCategory);
 
@@ -73,6 +75,7 @@ export default function MealPlans() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((plan, i) => {
             const catInfo = PLAN_CATEGORIES.find(c => c.value === plan.category);
+            const planRoute = PLAN_ROUTES[plan.id];
             return (
               <AnimatedSection key={plan.id} delay={i * 0.05}>
                 <motion.div
@@ -132,13 +135,14 @@ export default function MealPlans() {
                           💡 {plan.tips}
                         </p>
                       )}
-                      {PLAN_ROUTES[plan.id] && (
-                        <button
-                          onClick={e => { e.stopPropagation(); navigate(PLAN_ROUTES[plan.id]); }}
-                          className="mt-4 w-full py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-all"
+                      {planRoute && (
+                        <Link
+                          to={planRoute}
+                          onClick={e => e.stopPropagation()}
+                          className="mt-4 flex w-full items-center justify-center py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-all"
                         >
                           Continuer →
-                        </button>
+                        </Link>
                       )}
                     </motion.div>
                   )}
