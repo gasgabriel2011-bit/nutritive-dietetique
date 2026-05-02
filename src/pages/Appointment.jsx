@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ArrowLeft, CheckCircle2, User, Mail, Phone, Target, AlertCircle, MessageSquare, Calendar } from 'lucide-react';
 import AnimatedSection from '../components/ui/AnimatedSection';
 import { toast } from 'sonner';
+import { supabase } from '../lib/supabase';
 
 const GOALS = [
   { value: 'perte-de-poids', label: 'Perte de poids', icon: '📉' },
@@ -16,21 +17,23 @@ const GOALS = [
 
 const STEPS = ['Objectif', 'Informations', 'Habitudes', 'Confirmation'];
 
+const INITIAL_FORM = {
+  full_name: '',
+  email: '',
+  phone: '',
+  preferred_date: '',
+  preferred_time: '',
+  goal: '',
+  allergies: '',
+  habits: '',
+  message: '',
+};
+
 export default function Appointment() {
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [form, setForm] = useState({
-    full_name: '',
-    email: '',
-    phone: '',
-    preferred_date: '',
-    preferred_time: '',
-    goal: '',
-    allergies: '',
-    habits: '',
-    message: '',
-  });
+  const [form, setForm] = useState(INITIAL_FORM);
 
   const updateForm = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
 
@@ -42,13 +45,38 @@ export default function Appointment() {
 
   const handleSubmit = async () => {
     setSubmitting(true);
-    // Save to localStorage
-    const appointments = JSON.parse(localStorage.getItem('nutrivie_appointments') || '[]');
-    appointments.push({ ...form, id: Date.now(), created_date: new Date().toISOString() });
-    localStorage.setItem('nutrivie_appointments', JSON.stringify(appointments));
-    setSubmitting(false);
-    setSuccess(true);
-    toast.success('Rendez-vous demandé avec succès !');
+
+    const appointment = {
+      ...form,
+      goal_label: GOALS.find(g => g.value === form.goal)?.label || form.goal,
+      id: Date.now(),
+      created_date: new Date().toISOString(),
+    };
+
+    try {
+      if (!supabase) {
+        throw new Error("L'envoi d'email n'est pas configuré.");
+      }
+
+      const { error } = await supabase.functions.invoke('appointment-email', {
+        body: appointment,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      const appointments = JSON.parse(localStorage.getItem('nutrivie_appointments') || '[]');
+      appointments.push(appointment);
+      localStorage.setItem('nutrivie_appointments', JSON.stringify(appointments));
+      setSuccess(true);
+      toast.success('Rendez-vous demandé avec succès !');
+    } catch (error) {
+      console.error(error);
+      toast.error("Impossible d'envoyer la demande pour le moment. Réessayez dans quelques instants.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (success) {
@@ -70,7 +98,7 @@ export default function Appointment() {
             Nous vous recontacterons dans les 24h pour confirmer votre rendez-vous.
           </p>
           <button
-            onClick={() => { setSuccess(false); setStep(0); setForm({ full_name: '', email: '', phone: '', preferred_date: '', preferred_time: '', goal: '', allergies: '', habits: '', message: '' }); }}
+            onClick={() => { setSuccess(false); setStep(0); setForm(INITIAL_FORM); }}
             className="px-6 py-3 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-all"
           >
             Nouveau rendez-vous

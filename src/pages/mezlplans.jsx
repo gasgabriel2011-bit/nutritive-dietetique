@@ -1,10 +1,8 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Clock, Flame, ChevronRight, Target } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 import AnimatedSection from '../components/ui/AnimatedSection';
-
-const PLAN_ROUTES = { '1': '/plans/seche-progressive' };
 
 const PLAN_CATEGORIES = [
   { value: '', label: 'Tous', icon: '🍽️' },
@@ -34,7 +32,6 @@ const PLANS_DATA = [
 export default function MealPlans() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [expandedPlan, setExpandedPlan] = useState(null);
-  const navigate = useNavigate();
 
   const filtered = PLANS_DATA.filter(p => !selectedCategory || p.category === selectedCategory);
 
@@ -132,13 +129,14 @@ export default function MealPlans() {
                           💡 {plan.tips}
                         </p>
                       )}
-                      {PLAN_ROUTES[plan.id] && (
-                        <button
-                          onClick={e => { e.stopPropagation(); navigate(PLAN_ROUTES[plan.id]); }}
-                          className="mt-4 w-full py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-all"
+                      {plan.category === 'seche' && (
+                        <Link
+                          to="/plans/seche-progressive"
+                          onClick={(event) => event.stopPropagation()}
+                          className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90"
                         >
-                          Continuer →
-                        </button>
+                          Ouvrir le programme
+                        </Link>
                       )}
                     </motion.div>
                   )}
