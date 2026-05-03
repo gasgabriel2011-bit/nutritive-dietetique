@@ -12,7 +12,12 @@ export default defineConfig({
         name: 'NutriVie',
         short_name: 'NutriVie',
         description: 'Diététique fondée sur les preuves',
+        start_url: '/',
+        scope: '/',
+        display: 'standalone',
+        background_color: '#ffffff',
         theme_color: '#ffffff',
+        lang: 'fr',
         icons: [
           {
             src: '/web-app-manifest-192x192.png',
