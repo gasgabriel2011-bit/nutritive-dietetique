@@ -136,7 +136,7 @@ export default function IMCCalculator() {
                 />
                 {/* Marker */}
                 <div
-                  className="absolute top-2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-card border-[3px] border-foreground shadow-md transition-all duration-500"
+                  className="absolute top-[14px] -translate-y-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-card border-[3px] border-foreground shadow-md transition-all duration-500"
                   style={{ left: `${getBarPosition(imc)}%` }}
                 />
                 {/* Labels */}

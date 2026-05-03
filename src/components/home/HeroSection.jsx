@@ -57,6 +57,9 @@ export default function HeroSection({ heroImage }) {
               <img
                 src={heroImage}
                 alt="Alimentation saine et équilibrée"
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
                 className="w-full h-[400px] lg:h-[550px] object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-foreground/20 to-transparent" />

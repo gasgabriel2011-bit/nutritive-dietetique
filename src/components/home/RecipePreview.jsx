@@ -54,6 +54,8 @@ export default function RecipePreview({ images }) {
                     <img
                       src={images[i]}
                       alt={recipe.title}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-700"
                     />
                     <div className="absolute top-4 left-4">

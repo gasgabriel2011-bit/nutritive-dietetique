@@ -1,9 +1,10 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { APP_START_PATH, useInstalledAppMode } from '@/lib/appMode';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Layout from './components/layout/Layout';
 import Home from './pages/Home';
@@ -30,8 +31,45 @@ import ReequSuivi from './pages/reequilibrage/ReequSuivi';
 import ReequPratique from './pages/reequilibrage/ReequPratique';
 import PlanReequilibrage from './pages/PlanReequilibrage';
 
+const RequireInstalledAppAuth = ({ isInstalledApp, isAuthenticated, children }) => {
+  const location = useLocation();
+
+  if (isInstalledApp && !isAuthenticated) {
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{ from: `${location.pathname}${location.search}` }}
+      />
+    );
+  }
+
+  return children;
+};
+
+const WebOnlyRoute = ({ isInstalledApp, isAuthenticated, children }) => {
+  if (!isInstalledApp) {
+    return children;
+  }
+
+  return <Navigate to={isAuthenticated ? APP_START_PATH : "/login"} replace />;
+};
+
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated } = useAuth();
+  const isInstalledApp = useInstalledAppMode();
+
+  const appRoute = (element) => (
+    <RequireInstalledAppAuth isInstalledApp={isInstalledApp} isAuthenticated={isAuthenticated}>
+      {element}
+    </RequireInstalledAppAuth>
+  );
+
+  const webOnlyRoute = (element) => (
+    <WebOnlyRoute isInstalledApp={isInstalledApp} isAuthenticated={isAuthenticated}>
+      {element}
+    </WebOnlyRoute>
+  );
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -54,34 +92,34 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route
         path="/login"
-        element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
+        element={isAuthenticated ? <Navigate to={isInstalledApp ? APP_START_PATH : "/"} replace /> : <Login />}
       />
       <Route
         path="/signup"
-        element={isAuthenticated ? <Navigate to="/" replace /> : <SignUp />}
+        element={isAuthenticated ? <Navigate to={isInstalledApp ? APP_START_PATH : "/"} replace /> : <SignUp />}
       />
       <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/recettes" element={<Recipes />} />
-        <Route path="/suivi" element={<Tracking />} />
-        <Route path="/plans" element={<MealPlans />} />
-        <Route path="/plans/seche-progressive" element={<PlanSecheProgressive />} />
-        <Route path="/plans/seche-progressive/semaines" element={<SecheWeeks />} />
-        <Route path="/plans/seche-progressive/journees" element={<SecheDays />} />
-        <Route path="/plans/seche-progressive/recettes" element={<SecheRecipes />} />
-        <Route path="/plans/seche-progressive/courses" element={<SecheShopping />} />
-        <Route path="/plans/seche-progressive/sport" element={<SecheSport />} />
-        <Route path="/plans/seche-progressive/boissons" element={<SecheDrinks />} />
-        <Route path="/plans/reequilibrage-alimentaire" element={<PlanReequilibrage />} />
-        <Route path="/plans/reequilibrage-alimentaire/semaines" element={<ReequWeeks />} />
-        <Route path="/plans/reequilibrage-alimentaire/journees" element={<ReequDays />} />
-        <Route path="/plans/reequilibrage-alimentaire/recettes" element={<ReequRecipes />} />
-        <Route path="/plans/reequilibrage-alimentaire/courses" element={<ReequShopping />} />
-        <Route path="/plans/reequilibrage-alimentaire/suivi" element={<ReequSuivi />} />
-        <Route path="/plans/reequilibrage-alimentaire/conseils" element={<ReequPratique />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/rendez-vous" element={<Appointment />} />
-        <Route path="*" element={<PageNotFound />} />
+        <Route path="/" element={webOnlyRoute(<Home />)} />
+        <Route path="/recettes" element={appRoute(<Recipes />)} />
+        <Route path="/suivi" element={appRoute(<Tracking />)} />
+        <Route path="/plans" element={appRoute(<MealPlans />)} />
+        <Route path="/plans/seche-progressive" element={appRoute(<PlanSecheProgressive />)} />
+        <Route path="/plans/seche-progressive/semaines" element={appRoute(<SecheWeeks />)} />
+        <Route path="/plans/seche-progressive/journees" element={appRoute(<SecheDays />)} />
+        <Route path="/plans/seche-progressive/recettes" element={appRoute(<SecheRecipes />)} />
+        <Route path="/plans/seche-progressive/courses" element={appRoute(<SecheShopping />)} />
+        <Route path="/plans/seche-progressive/sport" element={appRoute(<SecheSport />)} />
+        <Route path="/plans/seche-progressive/boissons" element={appRoute(<SecheDrinks />)} />
+        <Route path="/plans/reequilibrage-alimentaire" element={appRoute(<PlanReequilibrage />)} />
+        <Route path="/plans/reequilibrage-alimentaire/semaines" element={appRoute(<ReequWeeks />)} />
+        <Route path="/plans/reequilibrage-alimentaire/journees" element={appRoute(<ReequDays />)} />
+        <Route path="/plans/reequilibrage-alimentaire/recettes" element={appRoute(<ReequRecipes />)} />
+        <Route path="/plans/reequilibrage-alimentaire/courses" element={appRoute(<ReequShopping />)} />
+        <Route path="/plans/reequilibrage-alimentaire/suivi" element={appRoute(<ReequSuivi />)} />
+        <Route path="/plans/reequilibrage-alimentaire/conseils" element={appRoute(<ReequPratique />)} />
+        <Route path="/blog" element={appRoute(<Blog />)} />
+        <Route path="/rendez-vous" element={webOnlyRoute(<Appointment />)} />
+        <Route path="*" element={appRoute(<PageNotFound />)} />
       </Route>
     </Routes>
   );

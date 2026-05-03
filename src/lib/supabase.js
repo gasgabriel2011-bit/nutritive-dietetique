@@ -33,5 +33,11 @@ export const supabaseConfigError = getSupabaseConfigError()
 export const isSupabaseConfigured = !supabaseConfigError
 
 export const supabase = isSupabaseConfigured
-  ? createClient(supabaseUrl, supabaseKey)
+  ? createClient(supabaseUrl, supabaseKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+    })
   : null

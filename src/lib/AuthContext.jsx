@@ -39,18 +39,24 @@ export function AuthProvider({ children }) {
 
     const hydrateSession = async () => {
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      const storedSession = sessionData?.session ?? null;
 
       if (!isMounted) {
         return;
       }
 
-      if (sessionError || !sessionData.session) {
+      if (sessionError || !storedSession) {
         setSession(null);
         setUser(null);
         setAuthError(sessionError ? { type: "session_error", message: sessionError.message } : null);
         setIsLoadingAuth(false);
         return;
       }
+
+      setSession(storedSession);
+      setUser(storedSession.user ?? null);
+      setAuthError(null);
+      setIsLoadingAuth(false);
 
       const { data: userData, error: userError } = await supabase.auth.getUser();
 
@@ -59,17 +65,14 @@ export function AuthProvider({ children }) {
       }
 
       if (userError || !userData.user) {
-        await supabase.auth.signOut();
-        setSession(null);
-        setUser(null);
-        setAuthError(userError ? { type: "session_error", message: userError.message } : null);
+        setSession(storedSession);
+        setUser(storedSession.user ?? null);
+        setAuthError(null);
       } else {
-        setSession({ ...sessionData.session, user: userData.user });
+        setSession({ ...storedSession, user: userData.user });
         setUser(userData.user);
         setAuthError(null);
       }
-
-      setIsLoadingAuth(false);
     };
 
     hydrateSession();

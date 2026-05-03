@@ -14,6 +14,8 @@ export default function CTASection({ lifestyleImage }) {
             <img
               src={lifestyleImage}
               alt="Mode de vie sain"
+              loading="lazy"
+              decoding="async"
               className="w-full h-[400px] lg:h-[500px] object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 via-foreground/60 to-transparent" />

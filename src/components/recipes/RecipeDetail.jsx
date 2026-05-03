@@ -1,10 +1,12 @@
 import { X, Clock, Flame, Dumbbell, ChefHat, Lightbulb, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getOptimizedImageUrl } from '@/lib/imageOptimization';
 
 export default function RecipeDetail({ recipe, image, onClose }) {
   if (!recipe) return null;
 
   const totalTime = (recipe.prep_time || 0) + (recipe.cook_time || 0);
+  const imageSrc = getOptimizedImageUrl(image || recipe.image_url || '/placeholder.jpg', { width: 900, quality: 78 });
 
   return (
     <AnimatePresence>
@@ -26,8 +28,10 @@ export default function RecipeDetail({ recipe, image, onClose }) {
           {/* Header image */}
           <div className="relative">
             <img
-              src={image || recipe.image_url || '/placeholder.jpg'}
+              src={imageSrc}
               alt={recipe.title}
+              decoding="async"
+              fetchPriority="high"
               className="w-full h-64 object-cover"
             />
             <button

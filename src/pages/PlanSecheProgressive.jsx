@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Clock, Flame, Target, ArrowLeft, ArrowRight, Star, Calendar, CheckSquare, Square } from 'lucide-react';
 import { useState } from 'react';
 import AnimatedSection from '../components/ui/AnimatedSection';
+import { useInstalledAppMode } from '@/lib/appMode';
 
 const STORAGE_KEY = 'nutrivie_seche_tracking';
 const DAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
@@ -70,6 +71,7 @@ const NAV_CARDS = [
 ];
 
 export default function PlanSecheProgressive() {
+  const isInstalledApp = useInstalledAppMode();
   const [trackData, saveTrackData] = useTracking();
 
   const toggleCheck = (dayIdx, field) => {
@@ -248,12 +250,14 @@ export default function PlanSecheProgressive() {
               Un suivi personnalisé avec notre diététicienne vous permettra d'adapter ce programme à vos besoins exacts.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                to="/rendez-vous"
-                className="px-8 py-3.5 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/20"
-              >
-                Prendre rendez-vous
-              </Link>
+              {!isInstalledApp ? (
+                <Link
+                  to="/rendez-vous"
+                  className="px-8 py-3.5 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/20"
+                >
+                  Prendre rendez-vous
+                </Link>
+              ) : null}
               <Link
                 to="/plans"
                 className="px-8 py-3.5 rounded-full border border-border text-foreground font-medium text-sm hover:bg-muted transition-all"

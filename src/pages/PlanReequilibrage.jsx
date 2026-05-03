@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Flame, Target, ArrowLeft, ArrowRight, Star, Calendar, X } from 'lucide-react';
 import AnimatedSection from '../components/ui/AnimatedSection';
+import { useInstalledAppMode } from '@/lib/appMode';
 
 const STORAGE_KEY = 'nutrivie_reequilibrage_suivi';
 const DAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
@@ -107,6 +108,7 @@ const NAV_CARDS = [
 ];
 
 export default function PlanReequilibrage() {
+  const isInstalledApp = useInstalledAppMode();
   const [trackData, setTrackData] = useState(() => {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
   });
@@ -299,9 +301,11 @@ export default function PlanReequilibrage() {
               Un accompagnement personnalisé avec notre diététicienne vous permettra d'adapter ce programme à votre quotidien.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/rendez-vous" className="px-8 py-3.5 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/20">
-                Prendre rendez-vous
-              </Link>
+              {!isInstalledApp ? (
+                <Link to="/rendez-vous" className="px-8 py-3.5 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-primary/20">
+                  Prendre rendez-vous
+                </Link>
+              ) : null}
               <Link to="/plans" className="px-8 py-3.5 rounded-full border border-border text-foreground font-medium text-sm hover:bg-muted transition-all">
                 Retour aux plans
               </Link>

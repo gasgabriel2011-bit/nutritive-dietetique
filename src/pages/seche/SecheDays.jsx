@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Flame } from 'lucide-react';
 import AnimatedSection from '../../components/ui/AnimatedSection';
 import { DAY_PLANS } from '../../lib/secheData';
+import { getOptimizedImageUrl } from '@/lib/imageOptimization';
 
 export default function SecheDays() {
   const [selected, setSelected] = useState('a');
@@ -45,7 +46,13 @@ export default function SecheDays() {
           <motion.div key={plan.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
             {/* Hero image */}
             <div className="relative rounded-3xl overflow-hidden mb-8 h-52 sm:h-64">
-              <img src={plan.image} alt={plan.label} className="w-full h-full object-cover" />
+              <img
+                src={getOptimizedImageUrl(plan.image, { width: 900, quality: 78 })}
+                alt={plan.label}
+                loading="lazy"
+                decoding="async"
+                className="w-full h-full object-cover"
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 to-transparent" />
               <div className="absolute bottom-4 left-5 text-primary-foreground">
                 <p className="font-display text-xl font-semibold">{plan.label}</p>

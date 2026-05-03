@@ -1,7 +1,10 @@
 import { Clock, Flame, Dumbbell } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { getOptimizedImageUrl } from '@/lib/imageOptimization';
 
 export default function RecipeCard({ recipe, onClick, image = null }) {
+  const imageSrc = getOptimizedImageUrl(image || recipe.image_url || '/placeholder.jpg', { width: 700 });
+
   return (
     <motion.div
       whileHover={{ y: -4 }}
@@ -11,8 +14,10 @@ export default function RecipeCard({ recipe, onClick, image = null }) {
     >
       <div className="relative overflow-hidden">
         <img
-          src={image || recipe.image_url || '/placeholder.jpg'}
+          src={imageSrc}
           alt={recipe.title}
+          loading="lazy"
+          decoding="async"
           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700"
         />
         <div className="absolute top-3 left-3">
