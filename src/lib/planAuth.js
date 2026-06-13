@@ -1,5 +1,5 @@
 // Système de code PIN pour accéder aux plans
-const PIN = '$1$$23"é&';
+const PIN = '123456';
 const STORAGE_KEY = 'nutrivie_plan_auth';
 
 export function isPlanUnlocked() {
