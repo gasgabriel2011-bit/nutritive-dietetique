@@ -5,6 +5,7 @@ import AnimatedSection from '../../components/ui/AnimatedSection';
 import RecipeCard from '../../components/recipes/RecipeCard';
 import RecipeDetail from '../../components/recipes/RecipeDetail';
 import { SECHE_RECIPES } from '../../lib/secheData';
+import { enhanceRecipes } from '../../lib/recipeEnhancements';
 
 const FILTERS = [
   { id: 'all', label: 'Toutes' },
@@ -25,13 +26,15 @@ const EXTRA_IDEAS = [
   'Salade de brocoli cru tahini', 'Bol açaï protéiné',
 ];
 
+const ENHANCED_SECHE_RECIPES = enhanceRecipes(SECHE_RECIPES);
+
 export default function SecheRecipes() {
   const [filter, setFilter] = useState('all');
   const [selectedRecipe, setSelectedRecipe] = useState(null);
 
   const filtered = filter === 'all'
-    ? SECHE_RECIPES
-    : SECHE_RECIPES.filter(r => r.meal_category === filter);
+    ? ENHANCED_SECHE_RECIPES
+    : ENHANCED_SECHE_RECIPES.filter(r => r.meal_category === filter);
 
   return (
     <div className="pt-20 pb-20 bg-background">
@@ -44,7 +47,7 @@ export default function SecheRecipes() {
             Recettes <span className="italic font-semibold text-primary">du programme sèche</span>
           </h1>
           <p className="text-muted-foreground mb-8">
-            {SECHE_RECIPES.length} recettes pensées pour la sèche : protéinées, rassasiantes et adaptées à l'objectif 1 800 kcal/jour.
+            {ENHANCED_SECHE_RECIPES.length} recettes pensées pour la sèche : protéinées, rassasiantes et adaptées à l'objectif 1 800 kcal/jour.
           </p>
         </AnimatedSection>
 
@@ -60,7 +63,7 @@ export default function SecheRecipes() {
                   : 'bg-card border border-border text-foreground/70 hover:border-primary/30'
               }`}
             >
-              {f.label} {f.id !== 'all' && `(${SECHE_RECIPES.filter(r => r.meal_category === f.id).length})`}
+              {f.label} {f.id !== 'all' && `(${ENHANCED_SECHE_RECIPES.filter(r => r.meal_category === f.id).length})`}
             </button>
           ))}
         </div>

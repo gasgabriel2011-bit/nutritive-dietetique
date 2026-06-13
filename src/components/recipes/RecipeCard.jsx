@@ -1,9 +1,10 @@
-import { Clock, Flame, Dumbbell } from 'lucide-react';
+import { Clock, Flame, Dumbbell, Utensils } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getOptimizedImageUrl } from '@/lib/imageOptimization';
 
 export default function RecipeCard({ recipe, onClick, image = null }) {
   const imageSrc = getOptimizedImageUrl(image || recipe.image_url || '/placeholder.jpg', { width: 700 });
+  const totalTime = recipe.total_time || (recipe.prep_time || 0) + (recipe.cook_time || 0) + (recipe.rest_time || 0);
 
   return (
     <motion.div
@@ -44,11 +45,17 @@ export default function RecipeCard({ recipe, onClick, image = null }) {
         {recipe.description && (
           <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{recipe.description}</p>
         )}
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          {recipe.prep_time && (
+        <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+          {totalTime > 0 && (
             <span className="flex items-center gap-1">
               <Clock className="w-3.5 h-3.5" />
-              {recipe.prep_time + (recipe.cook_time || 0)} min
+              {totalTime} min
+            </span>
+          )}
+          {recipe.cooking_method && (
+            <span className="flex items-center gap-1 capitalize">
+              <Utensils className="w-3.5 h-3.5" />
+              {recipe.cooking_method}
             </span>
           )}
           {recipe.calories && (

@@ -17,11 +17,13 @@ export function getIsInstalledAppMode() {
     typeof window.matchMedia === "function" &&
     DISPLAY_MODE_QUERIES.some((query) => window.matchMedia(query).matches);
 
-  const isIosHomeScreen = window.navigator?.standalone === true;
+  const navigatorWithStandalone = /** @type {Navigator & { standalone?: boolean }} */ (window.navigator);
+  const isIosHomeScreen = navigatorWithStandalone.standalone === true;
   const isAndroidTrustedWebActivity =
     typeof document !== "undefined" && document.referrer.startsWith("android-app://");
 
-  const capacitor = window.Capacitor;
+  const windowWithCapacitor = /** @type {Window & typeof globalThis & { Capacitor?: { isNativePlatform?: () => boolean, getPlatform?: () => string } }} */ (window);
+  const capacitor = windowWithCapacitor.Capacitor;
   const isNativeCapacitor =
     typeof capacitor?.isNativePlatform === "function"
       ? capacitor.isNativePlatform()

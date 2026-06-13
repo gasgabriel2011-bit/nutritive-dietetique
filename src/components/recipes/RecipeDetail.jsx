@@ -1,12 +1,18 @@
-import { X, Clock, Flame, Dumbbell, ChefHat, Lightbulb, AlertCircle } from 'lucide-react';
+import { X, Clock, Flame, Dumbbell, ChefHat, Lightbulb, AlertCircle, Timer, Utensils, Thermometer, Wrench } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getOptimizedImageUrl } from '@/lib/imageOptimization';
 
 export default function RecipeDetail({ recipe, image, onClose }) {
   if (!recipe) return null;
 
-  const totalTime = (recipe.prep_time || 0) + (recipe.cook_time || 0);
+  const totalTime = recipe.total_time || (recipe.prep_time || 0) + (recipe.cook_time || 0) + (recipe.rest_time || 0);
   const imageSrc = getOptimizedImageUrl(image || recipe.image_url || '/placeholder.jpg', { width: 900, quality: 78 });
+  const timingBadges = [
+    recipe.prep_time ? { label: 'Préparation', value: `${recipe.prep_time} min`, icon: Timer } : null,
+    Number.isFinite(recipe.cook_time) ? { label: 'Cuisson', value: `${recipe.cook_time} min`, icon: Utensils } : null,
+    recipe.rest_time ? { label: 'Repos', value: `${recipe.rest_time} min`, icon: Clock } : null,
+    totalTime ? { label: 'Total', value: `${totalTime} min`, icon: Clock } : null,
+  ].filter(Boolean);
 
   return (
     <AnimatePresence>
@@ -58,15 +64,37 @@ export default function RecipeDetail({ recipe, image, onClose }) {
               <p className="text-muted-foreground mb-6">{recipe.description}</p>
             )}
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-              {totalTime > 0 && (
-                <div className="bg-muted rounded-2xl p-3 text-center">
-                  <Clock className="w-5 h-5 mx-auto mb-1 text-primary" />
-                  <p className="text-sm font-semibold">{totalTime} min</p>
-                  <p className="text-xs text-muted-foreground">Total</p>
+            {/* Temps et cuisson */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+              {timingBadges.map(({ label, value, icon: Icon }) => (
+                <div key={label} className="bg-muted rounded-2xl p-3 text-center">
+                  <Icon className="w-5 h-5 mx-auto mb-1 text-primary" />
+                  <p className="text-sm font-semibold">{value}</p>
+                  <p className="text-xs text-muted-foreground">{label}</p>
                 </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-2 mb-8">
+              {recipe.cooking_method && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/8 text-primary text-xs font-medium border border-primary/15 capitalize">
+                  <Utensils className="w-3.5 h-3.5" /> {recipe.cooking_method}
+                </span>
               )}
+              {recipe.temperature && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary/10 text-secondary-foreground text-xs font-medium border border-secondary/20">
+                  <Thermometer className="w-3.5 h-3.5" /> {recipe.temperature}
+                </span>
+              )}
+              {recipe.cook_time === 0 && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted text-muted-foreground text-xs font-medium border border-border">
+                  Sans cuisson
+                </span>
+              )}
+            </div>
+
+            {/* Nutrition */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
               {recipe.calories && (
                 <div className="bg-muted rounded-2xl p-3 text-center">
                   <Flame className="w-5 h-5 mx-auto mb-1 text-secondary" />
@@ -103,6 +131,22 @@ export default function RecipeDetail({ recipe, image, onClose }) {
                   {recipe.proteins > 0 && <div className="bg-primary rounded-full" style={{ flex: recipe.proteins }} />}
                   {recipe.carbs > 0 && <div className="bg-secondary rounded-full" style={{ flex: recipe.carbs }} />}
                   {recipe.fats > 0 && <div className="bg-foreground/30 rounded-full" style={{ flex: recipe.fats }} />}
+                </div>
+              </div>
+            )}
+
+            {recipe.equipment?.length > 0 && (
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-3">
+                  <Wrench className="w-4 h-4 text-primary" />
+                  <h3 className="font-display text-lg font-semibold">Matériel utile</h3>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {recipe.equipment.map((item, i) => (
+                    <span key={i} className="px-3 py-1.5 rounded-full bg-muted text-xs text-muted-foreground border border-border/60">
+                      {item}
+                    </span>
+                  ))}
                 </div>
               </div>
             )}

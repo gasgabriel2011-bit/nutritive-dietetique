@@ -25,13 +25,15 @@ export default function Home() {
       });
     };
 
-    if ('requestIdleCallback' in window) {
-      const idleId = window.requestIdleCallback(preloadHomeImages, { timeout: 1000 });
-      return () => window.cancelIdleCallback(idleId);
+    const idleWindow = /** @type {Window & typeof globalThis & { requestIdleCallback?: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number, cancelIdleCallback?: (handle: number) => void }} */ (window);
+
+    if (typeof idleWindow.requestIdleCallback === 'function' && typeof idleWindow.cancelIdleCallback === 'function') {
+      const idleId = idleWindow.requestIdleCallback(preloadHomeImages, { timeout: 1000 });
+      return () => idleWindow.cancelIdleCallback(idleId);
     }
 
-    const timeoutId = window.setTimeout(preloadHomeImages, 250);
-    return () => window.clearTimeout(timeoutId);
+    const timeoutId = globalThis.setTimeout(preloadHomeImages, 250);
+    return () => globalThis.clearTimeout(timeoutId);
   }, []);
 
   return (

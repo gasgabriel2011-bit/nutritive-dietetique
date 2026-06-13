@@ -5,6 +5,7 @@ import AnimatedSection from '../../components/ui/AnimatedSection';
 import RecipeCard from '../../components/recipes/RecipeCard';
 import RecipeDetail from '../../components/recipes/RecipeDetail';
 import { REEQUILIBRAGE_RECIPES } from '../../lib/reequilibrageData';
+import { enhanceRecipes } from '../../lib/recipeEnhancements';
 
 const FILTERS = [
   { id: 'all', label: 'Toutes' },
@@ -23,13 +24,15 @@ const EXTRA_IDEAS = [
   'Salade endives noix', 'Bol vermicelles légumes', 'Soufflé fromage léger',
 ];
 
+const ENHANCED_REEQUILIBRAGE_RECIPES = enhanceRecipes(REEQUILIBRAGE_RECIPES);
+
 export default function ReequRecipes() {
   const [filter, setFilter] = useState('all');
   const [selectedRecipe, setSelectedRecipe] = useState(null);
 
   const filtered = filter === 'all'
-    ? REEQUILIBRAGE_RECIPES
-    : REEQUILIBRAGE_RECIPES.filter(r => r.meal_category === filter);
+    ? ENHANCED_REEQUILIBRAGE_RECIPES
+    : ENHANCED_REEQUILIBRAGE_RECIPES.filter(r => r.meal_category === filter);
 
   return (
     <div className="pt-20 pb-20 bg-background">
@@ -42,7 +45,7 @@ export default function ReequRecipes() {
             Recettes <span className="italic font-semibold text-primary">du rééquilibrage</span>
           </h1>
           <p className="text-muted-foreground mb-8">
-            {REEQUILIBRAGE_RECIPES.length} recettes familiales, simples et équilibrées pour le programme.
+            {ENHANCED_REEQUILIBRAGE_RECIPES.length} recettes familiales, simples et équilibrées pour le programme.
           </p>
         </AnimatedSection>
 
@@ -57,7 +60,7 @@ export default function ReequRecipes() {
                   : 'bg-card border border-border text-foreground/70 hover:border-primary/30'
               }`}
             >
-              {f.label} {f.id !== 'all' && `(${REEQUILIBRAGE_RECIPES.filter(r => r.meal_category === f.id).length})`}
+              {f.label} {f.id !== 'all' && `(${ENHANCED_REEQUILIBRAGE_RECIPES.filter(r => r.meal_category === f.id).length})`}
             </button>
           ))}
         </div>

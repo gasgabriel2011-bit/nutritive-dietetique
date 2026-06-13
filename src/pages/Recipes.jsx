@@ -3,6 +3,7 @@ import { Search } from 'lucide-react';
 import AnimatedSection from '../components/ui/AnimatedSection';
 import RecipeCard from '../components/recipes/RecipeCard';
 import RecipeDetail from '../components/recipes/RecipeDetail';
+import { enhanceRecipes } from '../lib/recipeEnhancements';
 
 const CATEGORIES = [
   { value: '', label: 'Toutes' },
@@ -340,12 +341,14 @@ const RECIPES_DATA = [
   },
 ];
 
+const ENHANCED_RECIPES = enhanceRecipes(RECIPES_DATA);
+
 export default function Recipes() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRecipe, setSelectedRecipe] = useState(null);
 
-  const filtered = RECIPES_DATA.filter(r => {
+  const filtered = ENHANCED_RECIPES.filter(r => {
     const matchCategory = !selectedCategory || r.category === selectedCategory;
     const matchSearch = !searchQuery ||
       r.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
